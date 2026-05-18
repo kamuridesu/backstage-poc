@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: argocd-structure
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: ssh://git@host.minikube.internal:2222/test-org/argo-cd-repo.git
+        revision: main
+        directories:
+          - path: structure/*
+  template:
+    metadata:
+      name: 'argocd-{{ "{{" }}path.basename{{ "}}" }}'
+    spec:
+      project: default
+      source:
+        repoURL: ssh://git@host.minikube.internal:2222/test-org/argo-cd-repo.git
+        targetRevision: main
+        path: 'structure/{{ "{{" }}path.basename{{ "}}" }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+
+      destination:
+        server: "https://kubernetes.default.svc"
+        namespace: argocd

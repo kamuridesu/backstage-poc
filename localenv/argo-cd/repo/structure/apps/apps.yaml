@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps-charts
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - git:
+        repoURL: ssh://git@host.minikube.internal:2222/test-org/argo-cd-repo.git
+        revision: main
+        files:
+          - path: 'values/**/*.yaml'
+  template:
+    metadata:
+      name: '{{.path.filename | trimSuffix ".yaml"}}'
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/kamuridesu/kamuchart.git
+          path: kamuchart
+          targetRevision: main
+          helm:
+            valueFiles:
+              - '$values/{{.path.path}}/{{.path.filename}}'
+        - repoURL: ssh://git@host.minikube.internal:2222/test-org/argo-cd-repo.git
+          path: '.'
+          ref: values
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: true
+        syncOptions:
+          - CreateNamespace=true
+      destination:
+        server: 'https://kubernetes.default.svc'
+        namespace: '{{.path.basenameNormalized}}'
