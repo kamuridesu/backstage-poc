@@ -14,9 +14,13 @@ echo "Generating ssh keys"
 mkdir -p keys
 if [ ! -f keys/admin_key ]; then
   ssh-keygen -t ed25519 -f keys/admin_key -N "" -q
+else
+    chmod 600 keys/admin_key 
 fi
 if [ ! -f keys/user_key ]; then
   ssh-keygen -t ed25519 -f keys/user_key -N "" -q
+else
+    chmod 600 keys/user_key
 fi
 
 ADMIN_PUB=$(cat keys/admin_key.pub)
